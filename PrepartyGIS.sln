@@ -5,6 +5,10 @@ VisualStudioVersion = 15.0.28010.2046
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrepartyGIS", "PrepartyGIS\PrepartyGIS.csproj", "{41D45100-A223-45A7-B144-9DF04C84BEBB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helpers", "Helpers\Helpers.csproj", "{2C5E3D48-DC6D-4E38-9C19-B63F7F570C7D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTO", "DTO\DTO.csproj", "{489CFB95-0ABF-44FD-9580-33F557272707}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{41D45100-A223-45A7-B144-9DF04C84BEBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{41D45100-A223-45A7-B144-9DF04C84BEBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{41D45100-A223-45A7-B144-9DF04C84BEBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C5E3D48-DC6D-4E38-9C19-B63F7F570C7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C5E3D48-DC6D-4E38-9C19-B63F7F570C7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C5E3D48-DC6D-4E38-9C19-B63F7F570C7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C5E3D48-DC6D-4E38-9C19-B63F7F570C7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{489CFB95-0ABF-44FD-9580-33F557272707}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{489CFB95-0ABF-44FD-9580-33F557272707}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{489CFB95-0ABF-44FD-9580-33F557272707}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{489CFB95-0ABF-44FD-9580-33F557272707}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
