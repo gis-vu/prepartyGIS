@@ -14,12 +14,70 @@ namespace PrepartyGIS
     {
         private static void Main(string[] args)
         {
-            var features = Read(@"C:\Users\daini\Documents\ArcGIS\Data\v2\WIP\102\102.shp");
+            var index = 102;
+
+            
+            var features = ReadFeatures($"C:\\Users\\daini\\Documents\\ArcGIS\\Data\\v2\\WIP\\102\\{index}.shp");
             UpdateNeighbours(features);
-            Save(features, @"C:\Users\daini\Desktop\GIS\Duomenys\WIP\102TESTDATA\readydata.txt");
+
+
+            var gridElement = ReadDataGridElement(@"C:\Users\daini\Documents\ArcGIS\Data\v2\fishnet3.shp", index, features);
+
+            //var data = FeaturesToGeojsonHelper.ToGeojson(gridElement.BorderFeatures);
+
+            Save(gridElement, @"C:\Users\daini\Desktop\GIS\Duomenys\WIP\102TESTDATA\readydata.txt");
         }
 
-        private static RouteFeature[] Read(string path)
+        private static GridElement ReadDataGridElement(string path, int index, RouteFeature[] features)
+        {
+            var sf = Shapefile.OpenFile(path);
+            sf.Reproject(KnownCoordinateSystems.Geographic.World.WGS1984);
+
+            var dataGridElement = new GridElement();
+
+            dataGridElement.Features = features;
+
+            var columns = GetColumns(sf);
+
+            foreach (var feature in sf.Features)
+            {
+                var attributes = GetAttributes(feature, columns);
+
+                if (attributes["TEXTID"].ToString() == index.ToString())
+                {
+                    dataGridElement.Border = feature.Coordinates.Select(t => new PointPosition()
+                    {
+                        Latitude = t.Y,
+                        Longitude = t.X
+                    }).ToArray();
+                    break;
+                }
+            }
+
+            if (dataGridElement.Border == null)
+                throw new Exception("SMTH went wrong");
+
+            dataGridElement.BorderFeatures = GetBorderFeatures(dataGridElement);
+
+            return dataGridElement;
+        }
+
+        private static RouteFeature[] GetBorderFeatures(GridElement gridElement)
+        {
+            var borderFeatures = new List<RouteFeature>();
+
+            foreach (var f in gridElement.Features)
+            {
+                if (DistanceHelpers.SplitFeatureIntoLineSegments(gridElement.Border).Any(x=> DistanceHelpers.GetDistance(x, f.Data.Coordinates.First()) < DistanceHelpers.DistanceDiff || DistanceHelpers.GetDistance(x, f.Data.Coordinates.Last()) < DistanceHelpers.DistanceDiff))
+                {
+                    borderFeatures.Add(f);
+                }
+            }
+
+            return borderFeatures.ToArray();
+        }
+
+        private static RouteFeature[] ReadFeatures(string path)
         {
             var sf = Shapefile.OpenFile(path);
             sf.Reproject(KnownCoordinateSystems.Geographic.World.WGS1984);
@@ -44,13 +102,13 @@ namespace PrepartyGIS
             return features.ToArray();
         }
 
-        private static void Save(RouteFeature[] features, string path)
+        private static void Save(object data, string path)
         {
             var formatter = new BinaryFormatter();
 
             using (var fileStream = new FileStream(path, FileMode.Create))
             {
-                formatter.Serialize(fileStream, features);
+                formatter.Serialize(fileStream, data);
 
             }
         }
