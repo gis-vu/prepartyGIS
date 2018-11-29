@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DTO
+namespace Models
 {
     [Serializable]
     public class PointPosition
@@ -9,7 +9,7 @@ namespace DTO
 
         public double Latitude { get; set; }
 
-        public double[] ToArray()
+        public double[] ToDoubleArray()
         {
             return new[] { Longitude, Latitude };
         }

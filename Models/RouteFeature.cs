@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DTO
+namespace Models
 {
     [Serializable]
     public class RouteFeature

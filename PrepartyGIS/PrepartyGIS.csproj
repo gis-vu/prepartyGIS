@@ -48,13 +48,6 @@
     <Reference Include="DotSpatial.Topology, Version=1.9.0.0, Culture=neutral, PublicKeyToken=a66b5e9434ca3671, processorArchitecture=MSIL">
       <HintPath>..\packages\DotSpatial.Topology.1.9\lib\net40-Client\DotSpatial.Topology.dll</HintPath>
     </Reference>
-    <Reference Include="DTO">
-      <HintPath>..\DTO\bin\Debug\netstandard2.0\DTO.dll</HintPath>
-    </Reference>
-    <Reference Include="DTOs, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\DTOs\bin\Debug\netstandard2.0\DTOs.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -76,6 +69,10 @@
     <ProjectReference Include="..\Helpers\Helpers.csproj">
       <Project>{2C5E3D48-DC6D-4E38-9C19-B63F7F570C7D}</Project>
       <Name>Helpers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\Models.csproj">
+      <Project>{3C49FBFC-5E5E-4B4A-A1E5-FCB19E01DDC1}</Project>
+      <Name>Models</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

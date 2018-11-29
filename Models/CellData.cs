@@ -1,12 +1,12 @@
 ﻿using System;
 
-namespace DTO
+namespace Models
 {
     [Serializable]
-    public class GridElement
+    public class CellData
     {
         public RouteFeature[] Features { get; set; }
         public RouteFeature[] BorderFeatures { get; set; }
-        public PointPosition[] Border { get; set; }
+        //public PointPosition[] Border { get; set; }
     }
 }

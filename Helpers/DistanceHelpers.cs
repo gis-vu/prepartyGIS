@@ -1,20 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DTO;
 
 namespace Helpers
 {
     public static class DistanceHelpers
     {
-        public const double DistanceDiff = 10f / 10000000;
+        private const double DistanceDiff = 10f / 10000000;
 
         public static bool AreClose(double[] first, double[] second)
         {
-            if (GetDistance(first, second) < DistanceDiff)
-                return true;
+            return GetDistance(first, second) < DistanceDiff;
+        }
 
-            return false;
+        public static bool IsCloseToLine(Tuple<double[], double[]> lineSegment, double[] second)
+        {
+            return GetDistanceToLine(lineSegment, second) < DistanceDiff;
         }
 
         private static double GetDistance(double[] first, double[] second)
@@ -22,29 +23,29 @@ namespace Helpers
             return Math.Sqrt(Math.Pow(first.First() - second.First(), 2) + Math.Pow(first.Last() - second.Last(), 2));
         }
 
-        public static Tuple<PointPosition, PointPosition>[] SplitFeatureIntoLineSegments(PointPosition[] coords)
+        public static Tuple<double[], double[]>[] SplitFeatureIntoLineSegments(double[][] coords)
         {
-            var lineSegments = new List<Tuple<PointPosition, PointPosition>>();
+            var lineSegments = new List<Tuple<double[], double[]>>();
 
             var lastPosition = coords.First();
 
             foreach (var c in coords.Skip(1))
             {
-                lineSegments.Add(new Tuple<PointPosition, PointPosition>(lastPosition, c));
+                lineSegments.Add(new Tuple<double[], double[]>(lastPosition, c));
                 lastPosition = c;
             }
 
             return lineSegments.ToArray();
         }
 
-        public static double GetDistance(Tuple<PointPosition, PointPosition> lineSegment, PointPosition point)
+        public static double GetDistanceToLine(Tuple<double[], double[]> lineSegment, double[] point)
         {
-            double x = point.Latitude,
-                y = point.Longitude,
-                x1 = lineSegment.Item1.Latitude,
-                y1 = lineSegment.Item1.Longitude,
-                x2 = lineSegment.Item2.Latitude,
-                y2 = lineSegment.Item2.Longitude;
+            double x = point[0],
+                y = point[1],
+                x1 = lineSegment.Item1[0],
+                y1 = lineSegment.Item1[1],
+                x2 = lineSegment.Item2[0],
+                y2 = lineSegment.Item2[1];
 
             var A = x - x1;
             var B = y - y1;
@@ -78,6 +79,15 @@ namespace Helpers
             var dx = x - xx;
             var dy = y - yy;
             return Math.Sqrt(dx * dx + dy * dy);
+        }
+
+        public static double CalcualteDistanceToFeature(double[][] featureCoordinates, double[] coordinate)
+        {
+            var lineSegments = SplitFeatureIntoLineSegments(featureCoordinates);
+
+            var distance = GetDistanceToLine(lineSegments.First(), coordinate);
+
+            return lineSegments.Skip(1).Select(c => GetDistanceToLine(c, coordinate)).Concat(new[] {distance}).Min();
         }
     }
 }

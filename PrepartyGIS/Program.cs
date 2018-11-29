@@ -5,8 +5,8 @@ using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using DotSpatial.Data;
 using DotSpatial.Projections;
-using DTO;
 using Helpers;
+using Models;
 
 namespace PrepartyGIS
 {
@@ -14,67 +14,59 @@ namespace PrepartyGIS
     {
         private static void Main(string[] args)
         {
+            var grid = GetGrid(@"C:\Users\daini\Documents\ArcGIS\Data\v2\fishnet3.shp");
+
             var index = 102;
 
-            
-            var features = ReadFeatures($"C:\\Users\\daini\\Documents\\ArcGIS\\Data\\v2\\WIP\\102\\{index}.shp");
-            UpdateNeighbours(features);
+            var cellData = GetCellData(index, "C:\\Users\\daini\\Documents\\ArcGIS\\Data\\v2\\WIP\\102\\", grid);
 
+            //var data = FeaturesToGeojsonHelper.ToGeojson(cellData.BorderFeatures
+            //    .Select(x => x.Data.Coordinates.Select(y => y.ToDoubleArray()).ToDoubleArray()).ToDoubleArray());
 
-            var gridElement = ReadDataGridElement(@"C:\Users\daini\Documents\ArcGIS\Data\v2\fishnet3.shp", index, features);
-
-            //var data = FeaturesToGeojsonHelper.ToGeojson(gridElement.BorderFeatures);
-
-            Save(gridElement, @"C:\Users\daini\Desktop\GIS\Duomenys\WIP\102TESTDATA\readydata.txt");
+            Save(cellData, @"C:\Users\daini\Desktop\GIS\Duomenys\WIP\102TESTDATA\" + index + ".txt");
+            Save(grid, @"C:\Users\daini\Desktop\GIS\Duomenys\WIP\102TESTDATA\grid.txt");
         }
 
-        private static GridElement ReadDataGridElement(string path, int index, RouteFeature[] features)
+        private static CellData GetCellData(int index, string diretoryPath, GridCell[] grid)
+        {
+            var features = ReadFeatures(diretoryPath + index + ".shp");
+
+            UpdateNeighbours(features);
+
+            var borderFeatures =
+                GetBorderFeatures(features, grid.First(x => x.Index == index.ToString()).Border);
+
+            return new CellData
+            {
+                BorderFeatures = borderFeatures,
+                Features = features
+            };
+        }
+
+        private static GridCell[] GetGrid(string path)
         {
             var sf = Shapefile.OpenFile(path);
             sf.Reproject(KnownCoordinateSystems.Geographic.World.WGS1984);
 
-            var dataGridElement = new GridElement();
-
-            dataGridElement.Features = features;
-
             var columns = GetColumns(sf);
 
-            foreach (var feature in sf.Features)
-            {
-                var attributes = GetAttributes(feature, columns);
-
-                if (attributes["TEXTID"].ToString() == index.ToString())
+            return (from feature in sf.Features
+                let attributes = GetAttributes(feature, columns)
+                select new GridCell
                 {
-                    dataGridElement.Border = feature.Coordinates.Select(t => new PointPosition()
-                    {
-                        Latitude = t.Y,
-                        Longitude = t.X
-                    }).ToArray();
-                    break;
-                }
-            }
-
-            if (dataGridElement.Border == null)
-                throw new Exception("SMTH went wrong");
-
-            dataGridElement.BorderFeatures = GetBorderFeatures(dataGridElement);
-
-            return dataGridElement;
+                    Border = feature.Coordinates.Select(t => new PointPosition {Latitude = t.Y, Longitude = t.X})
+                        .ToArray(),
+                    Index = attributes["TEXTID"].ToString()
+                }).ToArray();
         }
 
-        private static RouteFeature[] GetBorderFeatures(GridElement gridElement)
+        
+        private static RouteFeature[] GetBorderFeatures(RouteFeature[] features, PointPosition[] border)
         {
-            var borderFeatures = new List<RouteFeature>();
-
-            foreach (var f in gridElement.Features)
-            {
-                if (DistanceHelpers.SplitFeatureIntoLineSegments(gridElement.Border).Any(x=> DistanceHelpers.GetDistance(x, f.Data.Coordinates.First()) < DistanceHelpers.DistanceDiff || DistanceHelpers.GetDistance(x, f.Data.Coordinates.Last()) < DistanceHelpers.DistanceDiff))
-                {
-                    borderFeatures.Add(f);
-                }
-            }
-
-            return borderFeatures.ToArray();
+            return features.Where(f =>
+                DistanceHelpers.SplitFeatureIntoLineSegments(border.Select(x => x.ToDoubleArray()).ToArray()).Any(x =>
+                    DistanceHelpers.IsCloseToLine(x, f.Data.Coordinates.First().ToDoubleArray()) ||
+                    DistanceHelpers.IsCloseToLine(x, f.Data.Coordinates.Last().ToDoubleArray()))).ToArray();
         }
 
         private static RouteFeature[] ReadFeatures(string path)
@@ -89,7 +81,7 @@ namespace PrepartyGIS
             foreach (var feature in sf.Features)
             {
                 var f = new RouteFeature();
-                f.Data.Coordinates = feature.Coordinates.Select(t => new PointPosition()
+                f.Data.Coordinates = feature.Coordinates.Select(t => new PointPosition
                 {
                     Latitude = t.Y,
                     Longitude = t.X
@@ -109,17 +101,16 @@ namespace PrepartyGIS
             using (var fileStream = new FileStream(path, FileMode.Create))
             {
                 formatter.Serialize(fileStream, data);
-
             }
         }
 
         private static void UpdateNeighbours(RouteFeature[] features)
         {
-            Console.WriteLine("Started import");
+            Console.WriteLine("Updating feature neigbours");
 
-            double amount = 0,temp = 0, all = features.Length;
+            double amount = 0, temp = 0, all = features.Length;
 
-            for (int i = 0; i < features.Length - 1; i++)
+            for (var i = 0; i < features.Length - 1; i++)
             {
                 amount++;
                 temp++;
@@ -129,18 +120,13 @@ namespace PrepartyGIS
                     temp = 0;
                 }
 
-                for (int j = i + 1; j < features.Length; j++)
-                {
-
+                for (var j = i + 1; j < features.Length; j++)
                     if (AreNeighbours(features[i], features[j]))
                     {
                         features[i].Neighbours.Add(features[j]);
                         features[j].Neighbours.Add(features[i]);
                     }
-                }
             }
-
-            Console.WriteLine("Finished import");
         }
 
         private static bool AreNeighbours(RouteFeature routeFeature, RouteFeature testRouteFeature)
@@ -148,11 +134,11 @@ namespace PrepartyGIS
             if (routeFeature == testRouteFeature)
                 return false;
 
-            var startPoint1 = routeFeature.Data.Coordinates.First().ToArray();
-            var endPoint1 = routeFeature.Data.Coordinates.Last().ToArray();
+            var startPoint1 = routeFeature.Data.Coordinates.First().ToDoubleArray();
+            var endPoint1 = routeFeature.Data.Coordinates.Last().ToDoubleArray();
 
-            var startPoint2 = testRouteFeature.Data.Coordinates.First().ToArray();
-            var endPoint2 = testRouteFeature.Data.Coordinates.Last().ToArray();
+            var startPoint2 = testRouteFeature.Data.Coordinates.First().ToDoubleArray();
+            var endPoint2 = testRouteFeature.Data.Coordinates.Last().ToDoubleArray();
 
             if (DistanceHelpers.AreClose(startPoint1, startPoint2))
                 return true;
@@ -173,10 +159,8 @@ namespace PrepartyGIS
         {
             var attributes = new Dictionary<string, dynamic>();
 
-            for (int i = 0; i < feature.DataRow.ItemArray.Length; i++)
-            {
+            for (var i = 0; i < feature.DataRow.ItemArray.Length; i++)
                 attributes[columns[i]] = feature.DataRow.ItemArray[i];
-            }
 
             return attributes;
         }
@@ -185,10 +169,7 @@ namespace PrepartyGIS
         {
             var columns = new List<string>();
 
-            foreach (var c in sf.DataTable.Columns)
-            {
-                columns.Add(c.ToString());
-            }
+            foreach (var c in sf.DataTable.Columns) columns.Add(c.ToString());
 
             return columns.ToArray();
         }
