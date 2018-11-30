@@ -16,9 +16,9 @@ namespace PrepartyGIS
         {
             var grid = GetGrid(@"C:\Users\daini\Documents\ArcGIS\Data\v2\fishnet3.shp");
 
-            var index = 102;
+            var index = 103;
 
-            var cellData = GetCellData(index, "C:\\Users\\daini\\Documents\\ArcGIS\\Data\\v2\\WIP\\102\\", grid);
+            var cellData = GetCellData(index, "C:\\Users\\daini\\Documents\\ArcGIS\\Data\\v2\\WIP\\103\\", grid);
 
             //var data = FeaturesToGeojsonHelper.ToGeojson(cellData.BorderFeatures
             //    .Select(x => x.Data.Coordinates.Select(y => y.ToDoubleArray()).ToDoubleArray()).ToDoubleArray());
@@ -29,7 +29,7 @@ namespace PrepartyGIS
 
         private static CellData GetCellData(int index, string diretoryPath, GridCell[] grid)
         {
-            var features = ReadFeatures(diretoryPath + index + ".shp");
+            var features = ReadFeatures(diretoryPath + index + "_okV3.shp");
 
             UpdateNeighbours(features);
 
@@ -121,38 +121,12 @@ namespace PrepartyGIS
                 }
 
                 for (var j = i + 1; j < features.Length; j++)
-                    if (AreNeighbours(features[i], features[j]))
+                    if (DistanceHelpers.AreNeighbours(features[i].Data.Coordinates.Select(x=>x.ToDoubleArray()).ToArray(), features[j].Data.Coordinates.Select(x=>x.ToDoubleArray()).ToArray()))
                     {
                         features[i].Neighbours.Add(features[j]);
                         features[j].Neighbours.Add(features[i]);
                     }
             }
-        }
-
-        private static bool AreNeighbours(RouteFeature routeFeature, RouteFeature testRouteFeature)
-        {
-            if (routeFeature == testRouteFeature)
-                return false;
-
-            var startPoint1 = routeFeature.Data.Coordinates.First().ToDoubleArray();
-            var endPoint1 = routeFeature.Data.Coordinates.Last().ToDoubleArray();
-
-            var startPoint2 = testRouteFeature.Data.Coordinates.First().ToDoubleArray();
-            var endPoint2 = testRouteFeature.Data.Coordinates.Last().ToDoubleArray();
-
-            if (DistanceHelpers.AreClose(startPoint1, startPoint2))
-                return true;
-
-            if (DistanceHelpers.AreClose(startPoint1, endPoint2))
-                return true;
-
-            if (DistanceHelpers.AreClose(endPoint1, startPoint2))
-                return true;
-
-            if (DistanceHelpers.AreClose(endPoint1, endPoint2))
-                return true;
-
-            return false;
         }
 
         private static IDictionary<string, object> GetAttributes(IFeature feature, string[] columns)
