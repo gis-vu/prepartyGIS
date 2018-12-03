@@ -14,22 +14,36 @@ namespace PrepartyGIS
     {
         private static void Main(string[] args)
         {
-            var grid = GetGrid(@"C:\Users\daini\Documents\ArcGIS\Data\v2\fishnet3.shp");
 
-            var index = 103;
+            var gridPath = @"C:\Users\daini\Documents\ArcGIS\Data\python\fishnet_ok.shp";
+            var inputDir = @"C:\Users\daini\Documents\ArcGIS\Data\python\output\";
+            var outputDir = @"C:\Users\daini\Documents\ArcGIS\Data\python\ready\";
 
-            var cellData = GetCellData(index, "C:\\Users\\daini\\Documents\\ArcGIS\\Data\\v2\\WIP\\103\\", grid);
+            var grid = GetGrid(gridPath);
+
+            //for (var i = 0; i < 1200; i++)
+            //{
+            //    var pathToData = inputDir + i + ".shp";
+
+            //    if (File.Exists(pathToData))
+            //    {
+            //        var cellData = GetCellData(i, pathToData, grid);
+            //        Save(cellData, outputDir + i + ".txt");
+            //    }
+            //}
+
 
             //var data = FeaturesToGeojsonHelper.ToGeojson(cellData.BorderFeatures
             //    .Select(x => x.Data.Coordinates.Select(y => y.ToDoubleArray()).ToDoubleArray()).ToDoubleArray());
 
-            Save(cellData, @"C:\Users\daini\Desktop\GIS\Duomenys\WIP\102TESTDATA\" + index + ".txt");
-            Save(grid, @"C:\Users\daini\Desktop\GIS\Duomenys\WIP\102TESTDATA\grid.txt");
+            //Save(grid, outputDir + "grid.txt");
+
+            var data = FeaturesToGeojsonHelper.ToGeojson(new []{grid[223].Border.Select(x => x.ToDoubleArray()).ToArray()});
         }
 
         private static CellData GetCellData(int index, string diretoryPath, GridCell[] grid)
         {
-            var features = ReadFeatures(diretoryPath + index + "_okV3.shp");
+            var features = ReadFeatures(diretoryPath);
 
             UpdateNeighbours(features);
 

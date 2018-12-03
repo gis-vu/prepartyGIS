@@ -118,17 +118,22 @@ namespace Helpers
 
         public static Tuple<Tuple<double[],double[]>, double[]> GetProjectionOnFeature(double[][] featureCoordinates, double[] point)
         {
-            foreach (var s in SplitFeatureIntoLineSegments(featureCoordinates))
-            {
-                var projectedPoint = GetProjectionOnLine(s, point);
+            var sublines = SplitFeatureIntoLineSegments(featureCoordinates);
+            var minDistance = GetDistanceToLine(sublines.First(), point);
+            var closetsplitline = sublines.First(); 
 
-                if (!projectedPoint.SequenceEqual(s.Item1) && !projectedPoint.SequenceEqual(s.Item2))
+            foreach (var s in sublines.Skip(1))
+            {
+                var distance = GetDistanceToLine(s, point);
+
+                if (distance < minDistance)
                 {
-                    return new Tuple<Tuple<double[], double[]>, double[]>(s, projectedPoint);
+                    minDistance = distance;
+                    closetsplitline = s;
                 }
             }
 
-            throw new Exception("Things went wrong");
+            return new Tuple<Tuple<double[], double[]>, double[]>(closetsplitline, GetProjectionOnLine(closetsplitline, point));
         }
 
         public static double[] GetProjectionOnLine(Tuple<double[], double[]> lineSegment, double[] point)
@@ -178,9 +183,7 @@ namespace Helpers
         {
             var lineSegments = SplitFeatureIntoLineSegments(featureCoordinates);
 
-            var distance = GetDistanceToLine(lineSegments.First(), coordinate);
-
-            return lineSegments.Skip(1).Select(c => GetDistanceToLine(c, coordinate)).Concat(new[] {distance}).Min();
+            return lineSegments.Select(c => GetDistanceToLine(c, coordinate)).Min();
         }
 
         public static bool AreNeighbours(double[][] routeFeature, double[][] testRouteFeature)
