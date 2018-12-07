@@ -211,5 +211,27 @@ namespace Helpers
 
             return false;
         }
-    }
+
+        public static double DistanceBetweenCoordinates(double[] start, double[] end)
+        {
+            double lat1 = start[1], lng1 = start[0], lat2 = end[1], lng2 = end[0];
+
+            double earthRadius = 6371000; //meters
+            double dLat = ToRadians(lat2 - lat1);
+            double dLng = ToRadians(lng2 - lng1);
+            double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                       Math.Cos(ToRadians(lat1)) * Math.Cos(ToRadians(lat2)) *
+                       Math.Sin(dLng / 2) * Math.Sin(dLng / 2);
+            double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            double dist = (double)(earthRadius * c);
+
+            return dist;
+        }
+
+        
+        public static double ToRadians(double val)
+        {
+            return (Math.PI / 180) * val;
+        }
+}
 }

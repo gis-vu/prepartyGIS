@@ -1,0 +1,11 @@
+from pathlib import Path
+
+for index in range(1, 300):
+  file = inputDir + str(index) + ".shp"
+  my_file = Path(file)
+  if not my_file.is_file():
+    continue
+  print(str(index) + " YRA")
+
+
+execfile("C:\Users\daini\Desktop\cmd\pycmd.py")
