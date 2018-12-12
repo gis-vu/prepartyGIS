@@ -186,6 +186,17 @@ namespace Helpers
             return lineSegments.Select(c => GetDistanceToLine(c, coordinate)).Min();
         }
 
+        public static double CalcualteDistanceToFeatureInMeters(double[][] featureCoordinates, double[] coordinate)
+        {
+            var lineSegments = SplitFeatureIntoLineSegments(featureCoordinates);
+
+            return lineSegments.Select(c =>
+            {
+                var projection = GetProjectionOnLine(c, coordinate);
+                return DistanceBetweenCoordinates(projection, coordinate);
+            }).Min();
+        }
+
         public static bool AreNeighbours(double[][] routeFeature, double[][] testRouteFeature)
         {
             if (routeFeature == testRouteFeature)
